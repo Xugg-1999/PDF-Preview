@@ -1,0 +1,158 @@
+﻿@page
+@using System.IO
+
+@model PdfShareSimple.Pages.IndexModel
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FDC系统操作手册</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        .file-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .file-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+            .file-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+                border-color: var(--primary);
+            }
+
+        .file-icon {
+            font-size: 2.2rem;
+            color: var(--primary);
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .file-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @@media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+                margin: 2rem auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FDC系统操作手册</h1>
+            <p class="subtitle">最新用户手册 & 技术文档</p>
+        </header>
+
+        @if (Model.PdfFiles.Any())
+        {
+            <div class="file-list">
+                @foreach (var file in Model.PdfFiles)
+                {
+                    <a href="@file" target="_blank" class="file-card">
+                        <div class="file-icon">📄</div>
+                        <div class="file-info">
+                            <div class="file-name">@System.IO.Path.GetFileName(file)</div>
+                            <div class="file-desc">点击在线查看完整文档</div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div style="text-align:center; padding:4rem 1rem; color:var(--text-secondary);">
+                <h2 style="margin-bottom:1rem;">📂 暂无文档</h2>
+                <p>管理员正在整理最新资料，请稍后查看～</p>
+            </div>
+        }
+
+        <footer>
+            使用方法：点击卡片即可在浏览器中直接查看（支持翻页、搜索、缩放）<br>
+            如遇问题请联系 IT 支持
+        </footer>
+    </div>
+</body>
+</html>
