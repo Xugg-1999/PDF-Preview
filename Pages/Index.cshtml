@@ -1,6 +1,4 @@
 ﻿@page
-@using System.IO
-
 @model PdfShareSimple.Pages.IndexModel
 
 <!DOCTYPE html>
@@ -12,12 +10,16 @@
     <style>
         :root {
             --primary: #3b82f6;
+            --primary-soft: #60a5fa;
             --primary-dark: #2563eb;
-            --bg: #f8fafc;
+            --bg: #f9fafb;
             --card: #ffffff;
-            --text: #1e293b;
+            --text: #0f172a;
             --text-secondary: #64748b;
             --border: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --radius: 0.875rem;
         }
 
         * {
@@ -30,59 +32,73 @@
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
-            line-height: 1.6;
+            line-height: 1.65;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 900px;
-            margin: 3rem auto;
+            max-width: 920px;
+            margin: 4rem auto 5rem;
             padding: 0 1.5rem;
         }
 
         header {
             text-align: center;
-            margin-bottom: 2.5rem;
+            margin-bottom: 3.5rem;
         }
 
         h1 {
-            font-size: 2.25rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            letter-spacing: -0.025em;
         }
 
         .subtitle {
+            margin-top: 0.75rem;
             color: var(--text-secondary);
-            font-size: 1.05rem;
+            font-size: 1.15rem;
+            font-weight: 400;
         }
 
         .file-list {
             display: grid;
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .file-card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 0.75rem;
+            border-radius: var(--radius);
             padding: 1.25rem 1.5rem;
-            transition: all 0.2s ease;
+            transition: all 0.22s ease;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.25rem;
             text-decoration: none;
             color: inherit;
+            box-shadow: var(--shadow-sm);
         }
 
-            .file-card:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-                border-color: var(--primary);
+            .file-card:hover,
+            .file-card:focus-visible {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-md);
+                border-color: var(--primary-soft);
+                outline: none;
             }
 
-        .file-icon {
-            font-size: 2.2rem;
+        .file-icon-wrapper {
+            width: 3.2rem;
+            height: 3.2rem;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
             color: var(--primary);
+            flex-shrink: 0;
         }
 
         .file-info {
@@ -90,31 +106,71 @@
         }
 
         .file-name {
-            font-size: 1.1rem;
-            font-weight: 500;
+            font-size: 1.18rem;
+            font-weight: 600;
             color: var(--text);
         }
 
-        .file-desc {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        @@media (max-width: 600px) {
-            h1 {
-                font-size: 1.8rem;
+            .file-name .module {
+                color: #1e40af;
+                background: #dbeafe;
+                padding: 0.18rem 0.5rem;
+                border-radius: 0.4rem;
+                font-weight: 700;
+                margin-right: 0.5rem;
+                vertical-align: middle;
             }
 
+        .file-desc {
+            margin-top: 0.375rem;
+            font-size: 0.94rem;
+            color: var(--text-secondary);
+        }
+
+            .file-desc strong {
+                color: #334155;
+            }
+
+        .empty-state {
+            text-align: center;
+            padding: 6rem 1.5rem;
+            color: var(--text-secondary);
+        }
+
+            .empty-state h2 {
+                font-size: 3.5rem;
+                margin-bottom: 1.25rem;
+                opacity: 0.4;
+            }
+
+        footer {
+            margin-top: 5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+
+        @@media (max-width: 640px) {
             .container {
+                margin: 2.5rem auto 4rem;
                 padding: 0 1rem;
-                margin: 2rem auto;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.05rem;
+            }
+
+            .file-icon-wrapper {
+                width: 2.8rem;
+                height: 2.8rem;
+                font-size: 1.8rem;
             }
         }
     </style>
@@ -131,11 +187,41 @@
             <div class="file-list">
                 @foreach (var file in Model.PdfFiles)
                 {
+                    var fileName = System.IO.Path.GetFileName(file);
+                    string module = null;
+                    string description = "点击在线查看完整文档";
+
+                    if (fileName.Contains("DCP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        module = "DCP";
+                        description = "本文档主要介绍 <strong>DCP模块</strong> 的功能及使用方法,请点击查看";
+                    }
+                    else if (fileName.Contains("FDC", StringComparison.OrdinalIgnoreCase))
+                    {
+                        module = "FDC";
+                        description = "本文档主要介绍 <strong>FDC模块</strong> 的功能及使用方法,请点击查看";
+                    }
+                    else if (fileName.Contains("SPC", StringComparison.OrdinalIgnoreCase))
+                    {
+                        module = "SPC";
+                        description = "本文档主要介绍 <strong>SPC模块</strong> 的功能及使用方法,请点击查看";
+                    }
+
                     <a href="@file" target="_blank" class="file-card">
-                        <div class="file-icon">📄</div>
+                        <div class="file-icon-wrapper">📄</div>
                         <div class="file-info">
-                            <div class="file-name">@System.IO.Path.GetFileName(file)</div>
-                            <div class="file-desc">点击在线查看完整文档</div>
+                            <div class="file-name">
+                                @if (!string.IsNullOrEmpty(module))
+                                {
+                                    <span class="module">@module</span>
+                                    <text>用户手册</text>
+                                }
+                                else
+                                {
+                                    <text>用户手册</text>
+                                }
+                            </div>
+                            <div class="file-desc">@Html.Raw(description)</div>
                         </div>
                     </a>
                 }
@@ -143,14 +229,18 @@
         }
         else
         {
-            <div style="text-align:center; padding:4rem 1rem; color:var(--text-secondary);">
-                <h2 style="margin-bottom:1rem;">📂 暂无文档</h2>
+            <div class="empty-state">
+                <h2>📂</h2>
+                <h3 style="margin:1.5rem 0 1rem; color:#475569; font-size:1.5rem;">
+                    暂无可用文档
+                </h3>
                 <p>管理员正在整理最新资料，请稍后查看～</p>
             </div>
         }
 
         <footer>
-            使用方法：点击卡片即可在浏览器中直接查看（支持翻页、搜索、缩放）<br>
+            点击卡片可在浏览器中直接查看PDF<br>
+            支持翻页、搜索、缩放、夜间模式等功能<br>
             如遇问题请联系 IT 支持
         </footer>
     </div>
